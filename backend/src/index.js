@@ -1,6 +1,7 @@
 import { connect } from 'mongoose';
 import { registServerCallback } from './callback/index.js';
 import express from 'express';
+import 'dotenv/config';
 
 // create express app
 const app = express();

@@ -1,4 +1,6 @@
 import { User } from '../models/User.js';
+import bcrypt from 'bcrypt';
+import jsonwebtoken from 'jsonwebtoken';
 
 export function registUserCallback(app) {
   app.post('/users/register', async (req, res) => {
