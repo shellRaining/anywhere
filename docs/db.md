@@ -27,5 +27,5 @@
 | time?     | Date       | 可选项，游记的发布时间                     |
 | num_view? | int        | 可选项，游记的浏览次数                     |
 | num_like? | int        | 可选项，游记的点赞次数                     |
-| cost?     | int        | 可选项，游记的花费                       |
+| cost?     | int        | 可选项，旅行的花费                       |
 | location? | string     | 可选项，游记的地点                       |
