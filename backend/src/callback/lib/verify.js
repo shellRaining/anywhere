@@ -9,7 +9,7 @@ export async function verifyToken(req, res, next) {
 
     // 403 handle
     const reqUsername = req.params.username;
-    if (username !== reqUsername) {
+    if (username !== reqUsername || username !== req.body.username) {
       res.status(403).send('无法更新其他用户信息');
       return;
     }
