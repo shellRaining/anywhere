@@ -32,11 +32,38 @@ export function registUserCallback(app) {
   });
 
   app.post('/users/login', async (req, res) => {
-    // 用户登录接口
+    try {
+      const { username = '', password = '' } = req.body ?? {};
+      const user = await User.findOne({ username }).select('password');
+      if (!user) {
+        res.sstatus(400).send('用户不存在');
+      }
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+      if (!isPasswordValid) {
+        res.status(400).send('密码错误');
+      }
+
+      // handle jwt and sent response
+      const token = jsonwebtoken.sign({ username }, process.env.AUTH_SECRET_KEY, {
+        expiresIn: '1h',
+      });
+      res.json({ token });
+    } catch (e) {
+      res.status(500).send('服务器错误 ' + e.message);
+    }
   });
 
   app.get('/users/:username', async (req, res) => {
-    // 获取用户信息接口
+    try {
+      const { username } = req.params;
+      const user = await User.findOne({ username }).select('-password');
+      if (!user) {
+        res.status(404).send('用户不存在');
+      }
+      res.json(user);
+    } catch (e) {
+      res.status(500).send('服务器错误 ' + e.message);
+    }
   });
 
   app.put('/users/:username', async (req, res) => {
