@@ -1,20 +1,32 @@
 import { User } from '../models/User.js';
-import bcrypt from 'bcrypt';
+import bcrypt, { hash } from 'bcrypt';
 import jsonwebtoken from 'jsonwebtoken';
+import { verifyToken } from './lib/verify.js';
+
+async function valideUsername(username) {
+  if (!username) return false;
+  const user = User.findOne({ username }).select('username');
+  if (user) return false;
+  return true;
+}
+
+function validePassword(password) {
+  if (!password) return false;
+  if (password.length > 12) return false;
+  return true;
+}
 
 export function registUserCallback(app) {
   app.post('/users/register', async (req, res) => {
+    findOneAndUpdate;
     try {
       const { username = '', nickname = '', password = '' } = req.body ?? {};
-
-      function valide() {
-        if (!username || !nickname || !password) return false;
-        if (password.length > 12) return false;
-        return true;
+      if (!(await valideUsername(username))) {
+        res.status(400).send('用户名不合法');
+        return;
       }
-
-      if (!valide()) {
-        res.status(400).send('注册信息不合法');
+      if (!validePassword(password)) {
+        res.status(400).send('密码不合法');
         return;
       }
 
@@ -66,8 +78,26 @@ export function registUserCallback(app) {
     }
   });
 
-  app.put('/users/:username', async (req, res) => {
-    // 修改用户信息接口
+  app.put('/users/:username', verifyToken, async (req, res) => {
+    try {
+      const username = req.username;
+      const { nickname, password } = req.body ?? {};
+      if (!validePassword(password)) {
+        res.status(400).send('密码不合法');
+        return;
+      }
+
+      // update user database
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const updatedUser = await User.findOneAndUpdate(
+        { username },
+        { nickname, password: hashedPassword },
+        { new: true },
+      ).select('-password');
+      res.json(updatedUser);
+    } catch (e) {
+      res.status(500).send('服务器错误 ' + e.message);
+    }
   });
 
   app.delete('/users/:username', async (req, res) => {
