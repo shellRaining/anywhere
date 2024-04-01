@@ -5,6 +5,7 @@ import 'dotenv/config';
 
 // create express app
 const app = express();
+app.use(express.json());
 app.listen(3000, () => {
   console.log('服务器在 localhost:3000 启动');
 });

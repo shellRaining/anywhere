@@ -4,7 +4,31 @@ import jsonwebtoken from 'jsonwebtoken';
 
 export function registUserCallback(app) {
   app.post('/users/register', async (req, res) => {
-    // 用户注册接口
+    try {
+      const { username = '', nickname = '', password = '' } = req.body ?? {};
+
+      function valide() {
+        if (!username || !nickname || !password) return false;
+        if (password.length > 12) return false;
+        return true;
+      }
+
+      if (!valide()) {
+        res.status(400).send('注册信息不合法');
+        return;
+      }
+
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const user = new User({
+        username,
+        nickname,
+        password: hashedPassword,
+      });
+      await user.save();
+      res.status(201).send('注册成功');
+    } catch (e) {
+      res.status(500).send('服务器错误 ' + e.message);
+    }
   });
 
   app.post('/users/login', async (req, res) => {
