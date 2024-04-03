@@ -1,11 +1,12 @@
 import { User } from '../models/User.js';
 import bcrypt from 'bcrypt';
 import jsonwebtoken from 'jsonwebtoken';
-import { verifyToken } from './lib/verify.js';
+import { verifyToken, verifyUser } from './lib/verify.js';
+import { upload } from './lib/upload.js';
 
 async function valideUsername(username) {
   if (!username) return false;
-  const user = User.findOne({ username }).select('username');
+  const user = await User.findOne({ username }).select('username');
   if (user) return false;
   return true;
 }
@@ -48,10 +49,12 @@ export function registUserCallback(app) {
       const user = await User.findOne({ username }).select('password');
       if (!user) {
         res.status(400).send('用户不存在');
+        return;
       }
       const isPasswordValid = await bcrypt.compare(password, user.password);
       if (!isPasswordValid) {
         res.status(400).send('密码错误');
+        return;
       }
 
       // handle jwt and sent response
@@ -80,7 +83,7 @@ export function registUserCallback(app) {
     }
   });
 
-  app.put('/users/:username', verifyToken, async (req, res) => {
+  app.put('/users/:username', verifyToken, verifyUser, async (req, res) => {
     try {
       const username = req.username;
       const { nickname, password } = req.body ?? {};
@@ -107,7 +110,7 @@ export function registUserCallback(app) {
     }
   });
 
-  app.delete('/users/:username', verifyToken, async (req, res) => {
+  app.delete('/users/:username', verifyToken, verifyUser, async (req, res) => {
     try {
       const username = req.username;
       const user = await User.findOneAndDelete({ username }).select('-password');
@@ -121,8 +124,37 @@ export function registUserCallback(app) {
     }
   });
 
-  app.post('/users/avatar', async (req, res) => {
-    // 上传用户头像接口
+  app.post('/users/avatar', verifyToken, upload, async (req, res) => {
+    try {
+      const username = req.username;
+      const user = await User.findOne({
+        username,
+      }).select('-password');
+      if (!user) {
+        res.status(404).send('用户不存在');
+        return;
+      }
+
+      user.avatar = req.file.path;
+      await user.save();
+      res.json(user);
+    } catch (e) {
+      res.status(500).send('服务器错误 ' + e.message);
+    }
+  });
+
+  app.get('/users/avatar/:username', async (req, res) => {
+    try {
+      const { username } = req.params;
+      const user = await User.findOne({ username }).select('avatar');
+      if (!user) {
+        res.status(404).send('用户不存在');
+        return;
+      }
+      // TODO: return a img directly or send a url
+    } catch (e) {
+      res.status(500).send('服务器错误 ' + e.message);
+    }
   });
 
   app.get('users/check', async (req, res) => {
