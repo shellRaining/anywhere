@@ -8,17 +8,14 @@ import jsonwebtoken from 'jsonwebtoken';
 //   2. if token is invalid, verify refreshToken
 //     1. if refreshToken is invalid, return 401, need login
 //     2. if refreshToken is valid, return new token
-// 3. check username in token and request params
-// 4. check user exists
-// 5. add new token to response header
+// 3. add new token to response header
 export async function verifyToken(req, res, next) {
   try {
     const token = req.headers.authorization.replace('Bearer ', '');
-    const refreshToken = req.headers['x-refresh-token'];
+    const refreshToken = req.headers['x-refresh-token'].replace('Bearer ', '');
     let username;
 
     try {
-      // verify access token
       const payload = jsonwebtoken.verify(token, process.env.AUTH_SECRET_KEY);
       username = payload.username;
     } catch (e) {
@@ -35,21 +32,29 @@ export async function verifyToken(req, res, next) {
         return;
       }
     }
-
-    const reqUsername = req.params.username;
-    if (username !== reqUsername) {
-      res.status(403).send('无法更新其他用户信息');
-      return;
-    }
-
-    const user = await User.findOne({ username });
-    if (!user) {
-      res.status(400).send('用户不存在');
-      return;
-    }
-
+    req.username = username;
     next();
   } catch (e) {
     res.status(500).send('服务器错误 ' + e.message);
   }
+}
+
+// this middleware need called after verifyToken
+// 1. get username from request, compare with request params, if not equal, return 403
+// 2. get user from database, if not exist, return 400
+export async function verifyUser(req, res, next) {
+  const reqUsername = req.params.username;
+  const username = req.username;
+  if (username !== reqUsername) {
+    res.status(403).send('无法更新其他用户信息');
+    return;
+  }
+
+  const user = await User.findOne({ username });
+  if (!user) {
+    res.status(400).send('用户不存在');
+    return;
+  }
+
+  next();
 }
