@@ -1,5 +1,5 @@
 import { User } from '../models/User.js';
-import bcrypt, { hash } from 'bcrypt';
+import bcrypt from 'bcrypt';
 import jsonwebtoken from 'jsonwebtoken';
 import { verifyToken } from './lib/verify.js';
 
@@ -18,7 +18,6 @@ function validePassword(password) {
 
 export function registUserCallback(app) {
   app.post('/users/register', async (req, res) => {
-    findOneAndUpdate;
     try {
       const { username = '', nickname = '', password = '' } = req.body ?? {};
       if (!(await valideUsername(username))) {
@@ -48,7 +47,7 @@ export function registUserCallback(app) {
       const { username = '', password = '' } = req.body ?? {};
       const user = await User.findOne({ username }).select('password');
       if (!user) {
-        res.sstatus(400).send('用户不存在');
+        res.status(400).send('用户不存在');
       }
       const isPasswordValid = await bcrypt.compare(password, user.password);
       if (!isPasswordValid) {
@@ -57,9 +56,12 @@ export function registUserCallback(app) {
 
       // handle jwt and sent response
       const token = jsonwebtoken.sign({ username }, process.env.AUTH_SECRET_KEY, {
-        expiresIn: '1h',
+        expiresIn: '15m',
       });
-      res.json({ token });
+      const refreshToken = jsonwebtoken.sign({ username }, process.env.AUTH_SECRET_KEY, {
+        expiresIn: '7d',
+      });
+      res.json({ token, refreshToken });
     } catch (e) {
       res.status(500).send('服务器错误 ' + e.message);
     }
@@ -94,14 +96,29 @@ export function registUserCallback(app) {
         { nickname, password: hashedPassword },
         { new: true },
       ).select('-password');
-      res.json(updatedUser);
+
+      if (!updatedUser) {
+        res.status(404).send('用户不存在');
+      } else {
+        res.json(updatedUser);
+      }
     } catch (e) {
       res.status(500).send('服务器错误 ' + e.message);
     }
   });
 
-  app.delete('/users/:username', async (req, res) => {
-    // 删除用户接口
+  app.delete('/users/:username', verifyToken, async (req, res) => {
+    try {
+      const username = req.username;
+      const user = await User.findOneAndDelete({ username }).select('-password');
+      if (!user) {
+        res.status(404).send('用户不存在');
+      } else {
+        res.json(user);
+      }
+    } catch (e) {
+      res.status(500).send('服务器错误 ' + e.message);
+    }
   });
 
   app.post('/users/avatar', async (req, res) => {
