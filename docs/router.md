@@ -8,7 +8,7 @@
 
 `post /users/register`
 
-请求参数：
+请求体（JSON 格式）：
 
 - `username` 用户名
 - `password` 密码
@@ -24,7 +24,7 @@
 
 `post /users/login`
 
-请求参数：
+请求体（JSON 格式）：
 
 - `username` 用户名
 - `password` 密码
@@ -39,7 +39,7 @@
 
 `get /users/:username`
 
-请求参数：
+请求参数（URL 参数）：
 
 - `username` 用户名
 
@@ -53,7 +53,7 @@
 
 `put /users/:username`
 
-请求参数：
+请求体（JSON 格式）：
 
 - `username` 用户名
 - `password` 密码
@@ -73,9 +73,12 @@
 
 `delete /users/:username`
 
-请求参数：
+请求参数（URL 参数）：
 
 - `username` 用户名
+
+请求头：
+
 - `jwt` token
 
 返回状态码和数据：
@@ -90,10 +93,12 @@
 
 `post /users/avatar`
 
-请求参数：
+请求体（form-data 格式）：
 
-- `username` 用户名
 - `avatar` 头像文件，注意这里需要使用 `multipart/form-data` 格式，解析方式可再商议
+
+请求头：
+
 - `jwt` token
 
 返回状态码和数据：
@@ -108,7 +113,7 @@
 
 `get /users/avatar/:username`
 
-请求参数：
+请求参数（URL 格式）
 
 - `username` 用户名
 
@@ -122,7 +127,7 @@
 
 `get /users/check`
 
-请求参数：
+请求头：
 
 - `jwt` token
 
@@ -142,7 +147,7 @@
 
 `get /travels`
 
-请求参数：
+请求参数（URL 格式）：
 
 - `page` 页码
 - `limit` 每页数量
@@ -151,12 +156,13 @@
 
 - `200` 获取成功，返回游记列表（不包括内容）
 - `500` 服务器错误（比如数据库错误，非用户问题，需要展示相关信息）
+- `404` 获取页面不存在（游记列表为空）
 
 ### 请求用户游记列表
 
 `get /travels/:username`
 
-请求参数：
+请求参数（URL 格式）：
 
 - `username` 用户名
 
@@ -186,11 +192,14 @@
 
 `post /travel`
 
-请求参数：
+请求体（JSON 格式）
 
 - `title` 游记标题
 - `content` 游记内容
 - `covers` 游记封面图片
+
+请求头：
+
 - `jwt` token
 
 返回状态码和数据：
@@ -206,12 +215,15 @@
 
 这里似乎也可以使用 `patch` 方法，因为如果我们只修改了游记的标题，那么只需要传递标题即可，不需要传递所有的内容。附带正文会导致传输量增加，但是也可以减少一些逻辑判断。
 
-请求参数：
+请求体（JSON 格式）：
 
 - `id` 游记的唯一标识
 - `title` 游记标题
 - `content` 游记内容
 - `covers` 游记封面图片
+
+请求头：
+
 - `jwt` token
 
 返回状态码和数据：
@@ -229,9 +241,12 @@
 
 注意这里的删除是逻辑删除，即将游记的 `delete` 字段设置为 `1`。
 
-请求参数：
+请求体（JSON 格式）：
 
 - `id` 游记的唯一标识
+
+请求头：
+
 - `jwt` token
 
 返回状态码和数据：
@@ -248,11 +263,14 @@
 
 `put /travel/review/:id`
 
-请求参数：
+请求体（JSON 格式）：
 
 - `id` 游记的唯一标识
 - `review` 审核状态，0 为未审核，1 为审核通过，2 为审核未通过
 - `msg` 审核附带信息
+
+请求头：
+
 - `jwt` token
 
 返回状态码和数据：
