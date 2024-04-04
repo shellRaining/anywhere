@@ -2,7 +2,9 @@ import { User } from '../models/User.js';
 import bcrypt from 'bcrypt';
 import jsonwebtoken from 'jsonwebtoken';
 import { verifyToken, verifyUser } from './lib/verify.js';
-import { upload } from './lib/upload.js';
+import { uploadTo } from './lib/upload.js';
+
+const upload = uploadTo('avatar');
 
 async function valideUsername(username) {
   if (!username) return false;
@@ -151,7 +153,7 @@ export function registUserCallback(app) {
         res.status(404).send('用户不存在');
         return;
       }
-      // TODO: return a img directly or send a url
+      res.sendFile(user.avatar);
     } catch (e) {
       res.status(500).send('服务器错误 ' + e.message);
     }
