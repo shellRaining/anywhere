@@ -4,7 +4,7 @@ const travelSchema = new mongoose.Schema({
   title: String, // 游记的标题
   content: String, // 游记的内容
   author: String, // 作者的用户名，作为外键，对应一个唯一用户
-  covers: [String], // 游记的封面图片URL
+  cover: String, // 游记的封面图片URL
   review: {
     type: Number,
     enum: [0, 1, 2], // 游记的审核状态，0 为未审核，1 为审核通过，2 为审核未通过
