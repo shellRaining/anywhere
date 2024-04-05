@@ -45,16 +45,10 @@ export async function verifyToken(req, res, next) {
 export async function verifyUser(req, res, next) {
   const reqUsername = req.params.username;
   const username = req.username;
-  if (username !== reqUsername) {
-    res.status(403).send('无法更新其他用户信息');
-    return;
-  }
+  if (username !== reqUsername) return res.status(403).send('无法更新其他用户信息');
 
   const user = await User.findOne({ username });
-  if (!user) {
-    res.status(400).send('用户不存在');
-    return;
-  }
+  if (!user) return res.status(400).send('用户不存在');
 
   next();
 }

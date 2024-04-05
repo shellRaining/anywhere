@@ -23,14 +23,9 @@ export function registUserCallback(app) {
   app.post('/users/register', async (req, res) => {
     try {
       const { username = '', nickname = '', password = '' } = req.body ?? {};
-      if (!(await valideUsername(username))) {
-        res.status(400).send('用户名不合法');
-        return;
-      }
-      if (!validePassword(password)) {
-        res.status(400).send('密码不合法');
-        return;
-      }
+      if (!(await valideUsername(username))) return res.status(400).send('用户�不合法');
+
+      if (!validePassword(password)) return res.status(400).send('密码不合法');
 
       const hashedPassword = await bcrypt.hash(password, 10);
       const user = new User({
@@ -49,15 +44,10 @@ export function registUserCallback(app) {
     try {
       const { username = '', password = '' } = req.body ?? {};
       const user = await User.findOne({ username }).select('password');
-      if (!user) {
-        res.status(400).send('用户不存在');
-        return;
-      }
+      if (!user) return res.status(400).send('用户不存在');
+
       const isPasswordValid = await bcrypt.compare(password, user.password);
-      if (!isPasswordValid) {
-        res.status(400).send('密码错误');
-        return;
-      }
+      if (!isPasswordValid) return res.status(400).send('密码错误');
 
       // handle jwt and sent response
       const token = jsonwebtoken.sign({ username }, process.env.AUTH_SECRET_KEY, {
@@ -76,9 +66,8 @@ export function registUserCallback(app) {
     try {
       const { username } = req.params;
       const user = await User.findOne({ username }).select('-password');
-      if (!user) {
-        res.status(404).send('用户不存在');
-      }
+      if (!user) return res.status(404).send('用户不存在');
+
       res.json(user);
     } catch (e) {
       res.status(500).send('服务器错误 ' + e.message);
@@ -89,10 +78,7 @@ export function registUserCallback(app) {
     try {
       const username = req.username;
       const { nickname, password } = req.body ?? {};
-      if (!validePassword(password)) {
-        res.status(400).send('密码不合法');
-        return;
-      }
+      if (!validePassword(password)) return res.status(400).send('密码不合法');
 
       // update user database
       const hashedPassword = await bcrypt.hash(password, 10);
@@ -132,10 +118,7 @@ export function registUserCallback(app) {
       const user = await User.findOne({
         username,
       }).select('-password');
-      if (!user) {
-        res.status(404).send('用户不存在');
-        return;
-      }
+      if (!user) return res.status(404).send('用户不存在');
 
       user.avatar = req.file.path;
       await user.save();
@@ -149,10 +132,8 @@ export function registUserCallback(app) {
     try {
       const { username } = req.params;
       const user = await User.findOne({ username }).select('avatar');
-      if (!user) {
-        res.status(404).send('用户不存在');
-        return;
-      }
+      if (!user) return res.status(404).send('用户不存在');
+
       res.sendFile(user.avatar);
     } catch (e) {
       res.status(500).send('服务器错误 ' + e.message);
