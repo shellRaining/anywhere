@@ -118,8 +118,8 @@ export function registTravelCallback(app) {
   });
 
   app.post('/travel/cover', verifyToken, upload, async (req, res) => {
-    // 上传游记封面
     try {
+      const id = req.body.id;
       const travel = await Travel.findOne({ _id: id });
       travel.covers.push(req.file.path);
       await travel.save();
@@ -130,7 +130,6 @@ export function registTravelCallback(app) {
   });
 
   app.get('/travel/cover', verifyToken, async (req, res) => {
-    // 获取游记封面
     try {
       const id = req.query.id;
       const index = req.query.index;
