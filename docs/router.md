@@ -176,9 +176,9 @@
 
 ### 请求游记详情
 
-`get /travel/:id`
+`get /travel`
 
-请求参数：
+请求参数（通过 param 传递）：
 
 - `id` 游记的唯一标识
 
@@ -196,7 +196,9 @@
 
 - `title` 游记标题
 - `content` 游记内容
-- `cover` 游记封面图片
+
+请求头：
+
 - `jwt` token
 
 返回状态码和数据：
@@ -224,7 +226,7 @@
 
 ### 获取游记封面
 
-`get /travel/cover/:id`
+`get /travel/cover`
 
 请求参数（URL 格式）：
 

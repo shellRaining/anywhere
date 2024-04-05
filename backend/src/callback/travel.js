@@ -7,10 +7,9 @@ import fs from 'fs';
 const upload = uploadTo('covers');
 
 export function registTravelCallback(app) {
-  app.get('/travel/:id', async (req, res) => {
-    // 请求游记详情
+  app.get('/travel', async (req, res) => {
     try {
-      const { id } = req.params ?? {};
+      const id = req.query.id
       const travel = await Travel.findOne({ _id: id });
       if (!travel) {
         res.status(404).send('用户不存在');
@@ -23,7 +22,6 @@ export function registTravelCallback(app) {
   });
 
   app.post('/travel', verifyToken, async (req, res) => {
-    // 发布游记
     try {
       const { title, content } = req.body ?? {};
       if (title) {
@@ -99,7 +97,7 @@ export function registTravelCallback(app) {
   app.put('/travel/review', verifyToken, async (req, res) => {
     // 游记审核
     try {
-      const { id, review, msg, jwt } = req.body ?? {};
+      const { id, review, msg } = req.body ?? {};
       const user = await User.findOne({ username: req.username });
       if (user.permission === 3 || user.permission === 2) {
         const travel = await Travel.findOne({ _id: id });
@@ -129,13 +127,12 @@ export function registTravelCallback(app) {
     }
   });
 
-  app.get('/travel/cover', verifyToken, async (req, res) => {
+  app.get('/travel/cover', async (req, res) => {
     try {
       const id = req.query.id;
-      const index = req.query.index;
-      if (!id || !index) {
-        return res.status(400).send('参数错误');
-      }
+      const index = req.query.index ?? 0;
+      if (!id) return res.status(400).send('参数错误');
+
       const travel = await Travel.findOne({ _id: id }).select('covers');
       if (!travel) {
         res.status(404).send('游记不存在');
