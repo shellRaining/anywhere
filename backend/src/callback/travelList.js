@@ -9,7 +9,8 @@ export function registTravelListCallback(app) {
       const limit = req.query.limit ?? 0;
       const p = parseInt(page); // 从0开始
       const l = parseInt(limit);
-      const travelList = await Travel.find().skip(p * l).limit(l).select('-content');
+      // 返回审核通过的游记
+      const travelList = await Travel.find({review: 1}).skip(p * l).limit(l).select('-content');
       if (travelList.length > 0) {
         res.status(200).json(travelList);
       } else {

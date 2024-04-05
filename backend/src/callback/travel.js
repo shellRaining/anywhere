@@ -2,6 +2,8 @@ import { Travel } from '../models/travel.js';
 import { verifyToken, verifyUser } from './lib/verify.js';
 import { uploadTo } from './lib/upload.js';
 import { User } from '../models/User.js';
+import fs from 'fs';
+
 const upload = uploadTo('covers');
 
 export function registTravelCallback(app) {
@@ -23,12 +25,11 @@ export function registTravelCallback(app) {
   app.post('/travel', verifyToken, async (req, res) => {
     // 发布游记
     try {
-      const { title, content, cover } = req.body ?? {};
+      const { title, content } = req.body ?? {};
       if (title) {
         const newTravel = new Travel({
           title,
           content,
-          cover,
           author: req.username,
           time: new Date(),
           msg: ''
@@ -46,7 +47,7 @@ export function registTravelCallback(app) {
   app.put('/travel/:id', verifyToken, async (req, res) => {
     // 修改游记
     try {
-      const { id, title, content, cover } = req.body ?? {};
+      const { id, title, content } = req.body ?? {};
       if (title) {
         const author = await Travel.findOne({ _id: id }).select('author');
         if (author.author !== req.username) {
@@ -55,7 +56,7 @@ export function registTravelCallback(app) {
         }
         const updatedTravel = await Travel.findOneAndUpdate(
           { _id: id },
-          { title, content, cover },
+          { title, content },
           { new: true }
         );
         if (!updatedTravel) {
@@ -75,13 +76,18 @@ export function registTravelCallback(app) {
     // 删除游记
     try {
       const { id = '' } = req.body ?? {};
-      const author = await Travel.findOne({ _id: id }).select('author');
-      if (!author) {
+      const travel = await Travel.findOne({ _id: id });
+      if (!travel) {
         res.status(404).send('游记不存在');
       }
-      if (author.author != req.username) {
+      if (travel.author != req.username) {
         res.status(403).send('无权删除他人游记');
         return;
+      }
+      for(const path of travel.covers){
+        fs.unlink(path, (err) => {
+          console.log('图片删除失败: '+path);
+        })
       }
       await Travel.deleteOne({ _id: id });
       res.status(200).send('删除成功');
@@ -112,4 +118,40 @@ export function registTravelCallback(app) {
       res.status(500).send('服务器错误' + e.message);
     }
   });
+
+  app.post('/travel/cover', verifyToken, upload, async (req, res) => {
+    // 上传游记封面
+    try {
+      const travel = await Travel.findOne({ _id : id });
+      travel.covers.push(req.file.path);
+      await travel.save();
+      res.status(200).send('图片上传成功');
+    } catch(e) {
+      res.status(500).send('服务器错误' + e.message);
+    }
+  });
+
+  app.get('/travel/cover', verifyToken, async (req, res) => {
+    // 获取游记封面
+    try {
+      const id = req.query.id;
+      const index = req.query.index;
+      if(!id || !index) {
+        return res.status(400).send('参数错误');
+      }
+      const travel = await Travel.findOne({_id: id}).select('covers');
+      if(!travel) {
+        res.status(404).send('游记不存在');
+      } else {
+        const coverIndex = parseInt(index);
+        if(isNaN(coverIndex) || coverIndex<0 || coverIndex >= travel.covers.length){
+          res.status(404).send('图片下标错误');
+        }else{
+          res.sendFile(travel.covers[index]);
+        }
+      }
+    }  catch(e) {
+      res.status(500).send('服务器错误' + e.message);
+    }
+  })
 }
