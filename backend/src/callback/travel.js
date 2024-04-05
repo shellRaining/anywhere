@@ -42,7 +42,7 @@ export function registTravelCallback(app) {
     }
   });
 
-  app.put('/travel/:id', verifyToken, async (req, res) => {
+  app.put('/travel', verifyToken, async (req, res) => {
     // 修改游记
     try {
       const { id, title, content } = req.body ?? {};

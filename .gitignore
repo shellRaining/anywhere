@@ -3,3 +3,4 @@ backend/public/avatar
 .DS_store
 frontend/public/gallery
 pnpm-lock.yaml
+backend/public/covers
