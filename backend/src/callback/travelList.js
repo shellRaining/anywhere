@@ -1,9 +1,8 @@
-import { Travel } from '../models/travel.js';
+import { Travel } from '../models/Travel.js';
 import { User } from '../models/User.js';
 
 export function registTravelListCallback(app) {
   app.get('/travels', async (req, res) => {
-    // 请求游记列表
     try {
       const page = req.query.page ?? 0;
       const limit = req.query.limit ?? 0;

@@ -1,4 +1,4 @@
-import { Travel } from '../models/travel.js';
+import { Travel } from '../models/Travel.js';
 import { verifyToken } from './lib/verify.js';
 import { uploadTo } from './lib/upload.js';
 import { User } from '../models/User.js';

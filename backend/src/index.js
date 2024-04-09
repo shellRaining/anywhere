@@ -1,11 +1,13 @@
 import { connect } from 'mongoose';
 import { registServerCallback } from './callback/index.js';
 import express from 'express';
+import cors from "cors";
 import 'dotenv/config';
 
 // create express app
 const app = express();
 app.use(express.json());
+app.use(cors());
 app.listen(3000, () => {
   console.log('服务器在 localhost:3000 启动');
 });
