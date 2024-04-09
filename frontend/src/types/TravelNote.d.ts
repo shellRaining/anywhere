@@ -1,10 +1,10 @@
 interface TravelNote {
-  id: number;
+  _id: string;
   title: string;
   content?: string;
   author: string;
-  covers?: string,
   review: number;
   msg: string;
+  covers?: string[],
   delete: number;
 }
